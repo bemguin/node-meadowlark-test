@@ -1,3 +1,5 @@
+var fortune=require('./lib/fortune.js');
+
 var express=require('express');
 
 var app=express();
@@ -11,25 +13,36 @@ app.set('view engine','handlebars');
 //端口
 app.set('port',process.env.PORT||3000);
 
-//static
+//设置静态内容响应
 app.use(express.static(__dirname+'/public'));
 
-
-//数据
-var fortunes=['Conquer your fears or they will conquer ypu.',
-	'Rivers need springs.',
-	'Do not fear what you don\'t know',
-	'you will have a pleasant surprise.'];
+//是否开启测试
+app.use(function  (req,res,next) {
+	res.locals.showTests=app.get('env')!=='production'&&req.query.test==='1';
+	next();
+});
 
 //路由
 app.get('/',function  (req,res) {
-	res.render('home');
+	res.render('home',{
+		currency:{
+			name:'United States dollars',
+			abbrev:'USD'
+		},
+		tours:[
+			{name:'Hood River',price:'$99.95'},
+			{name:'Oregon Coast',price:'$159.95'},
+		],
+		specialsUrl:'/january-specials',
+		currencies:['USD','GBP','BTC']
+	});
 });
 
 app.get('/about',function  (req,res) {
-	var randomFortune=fortunes[Math.floor(Math.random()*fortunes.length)];
-
-	res.render('about',{fortune:randomFortune});
+	res.render('about',{
+		fortune:fortune.getFortune(),
+		pageTestScript:'/qa/tests-about.js'
+	});
 });
 
 
